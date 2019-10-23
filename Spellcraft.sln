@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.539
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spellcraft", "Spellcraft\Spellcraft.csproj", "{BC4152E0-EC6F-4BE4-87FE-D30F14005CCA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC4152E0-EC6F-4BE4-87FE-D30F14005CCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC4152E0-EC6F-4BE4-87FE-D30F14005CCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC4152E0-EC6F-4BE4-87FE-D30F14005CCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC4152E0-EC6F-4BE4-87FE-D30F14005CCA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {99C48B9A-920E-499C-8C14-69B4EBCACC0B}
+	EndGlobalSection
+EndGlobal
