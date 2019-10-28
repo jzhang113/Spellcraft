@@ -3,6 +3,9 @@ using GoRogue.DiceNotation;
 using GoRogue.GameFramework;
 using GoRogue.MapGeneration;
 using GoRogue.MapViews;
+using Spellcraft.Components;
+using Spellcraft.Entities;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -17,6 +20,7 @@ namespace Spellcraft
         public const int Width = 10;
         public const int Height = 10;
         private static Map _map;
+        private static IGameObject _player;
         private static IList<int> _cards;
         private static IList<char> _cardList;
         private static IList<int> _stack;
@@ -37,8 +41,10 @@ namespace Spellcraft
             ISettableMapView<bool> mapview = new ArrayMap<bool>(Width, Height);
             QuickGenerators.GenerateRectangleMap(mapview);
 
-            _map.ApplyTerrainOverlay(mapview, (pos, val) => new GameObject(pos, 0, null, true, val, !val));
-            _map.AddEntity(new GameObject(new GoRogue.Coord(5, 5), 1, null));
+            _map.ApplyTerrainOverlay(mapview, (pos, val) => val ? TerrainFactory.Floor(pos) : TerrainFactory.Wall(pos));
+
+            _player = EntityFactory.Player(new GoRogue.Coord(5, 5));
+            _map.AddEntity(_player);
 
             _cardList = new char[] { 'M', 'C', 'D', 'R', 'S', 'A' };
 
@@ -48,31 +54,53 @@ namespace Spellcraft
 
         private static void Run()
         {
+            var frameRate = new TimeSpan(TimeSpan.TicksPerSecond / 30);
+            const int updateLimit = 10;
             bool exiting = false;
+            DateTime currentTime = DateTime.UtcNow;
+            var accum = new TimeSpan();
+
+            TimeSpan maxDt = frameRate * updateLimit;
 
             while (!exiting)
             {
-                int input = Terminal.Read();
-
-                switch (input)
+                DateTime newTime = DateTime.UtcNow;
+                TimeSpan frameTime = newTime - currentTime;
+                if (frameTime > maxDt)
                 {
-                    case Terminal.TK_CLOSE:
-                    case Terminal.TK_ESCAPE:
-                        exiting = true;
-                        break;
+                    frameTime = maxDt;
                 }
 
-                Update(input);
+                currentTime = newTime;
+                accum += frameTime;
+
+                while (accum >= frameRate)
+                {
+                    if (Terminal.HasInput())
+                    {
+                        exiting = Update(Terminal.Read());
+                    }
+
+                    accum -= frameRate;
+                }
+
+                double remaining = accum / frameRate;
                 Render();
             }
 
             Terminal.Close();
         }
 
-        private static void Update(int input)
+        private static bool Update(int input)
         {
-            int num = input - 0x1E;
+            switch (input)
+            {
+                case Terminal.TK_CLOSE:
+                case Terminal.TK_ESCAPE:
+                    return true;
+            }
 
+            int num = input - 0x1E;
             if (num >= 0 && num < 9)
             {
                 if (_cards.Count > num)
@@ -89,24 +117,23 @@ namespace Spellcraft
 
                 _stack.Clear();
             }
+
+            return false;
         }
 
         private static void Render()
         {
             Terminal.Clear();
 
-            foreach (GoRogue.Coord pos in _map.Positions())
-            {
-                char symbol = _map.WalkabilityView[pos] ? '.' : '#';
+            _map.Positions()
+                .Select(pos => _map.Terrain[pos])
+                .ForEach(terrain =>
+                    terrain.GetComponent<DrawComponent>().Draw());
 
-                Terminal.Color("white");
-                Terminal.Put(pos, symbol);
-            }
-
-            foreach (var v in _map.Entities)
-            {
-                Terminal.Put(v.Position, '@');
-            }
+            _map.Entities
+                .Select(spatialTuple => spatialTuple.Item)
+                .ForEach(entity =>
+                    entity.GetComponent<DrawComponent>().Draw());
 
             Terminal.Print(new Rectangle(0, Height + 1, 5, 1), "Hand:");
             foreach ((int ident, int idx) in _cards.Select((v, i) => (v, i)))
