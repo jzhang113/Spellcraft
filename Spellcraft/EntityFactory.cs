@@ -11,6 +11,7 @@ namespace Spellcraft.Entities
         {
             var player = new GameObject(position, 1, null, false, false, true);
             player.AddComponent(new DrawComponent('@', Color.White));
+            player.AddComponent(new HealthComponent(10));
             return player;
         }
     }
