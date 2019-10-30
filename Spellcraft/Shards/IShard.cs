@@ -1,4 +1,6 @@
-﻿namespace Spellcraft.Shards
+﻿using GoRogue.GameFramework;
+
+namespace Spellcraft.Shards
 {
     interface IShard
     {
@@ -6,7 +8,7 @@
         char Symbol { get; }
 
         // Primary effect, when used as base
-        SpellResolver Primary();
+        SpellResolver Primary(IGameObject caster);
 
         // Secondary effect, when modifying parent
         SpellResolver Secondary(SpellResolver parent);

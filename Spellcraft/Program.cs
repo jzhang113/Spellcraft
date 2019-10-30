@@ -2,6 +2,7 @@
 using GoRogue.GameFramework;
 using GoRogue.MapGeneration;
 using GoRogue.MapViews;
+using GoRogue.Random;
 using Spellcraft.Components;
 using Spellcraft.Entities;
 using Spellcraft.Shards;
@@ -132,13 +133,13 @@ namespace Spellcraft
             if (stack.Count == 0)
                 return;
 
-            SpellResolver spell = stack[0].Primary();
+            SpellResolver spell = stack[0].Primary(Player);
             stack.Skip(1)
                  .Aggregate(spell, (resolver, shard) => shard.Secondary(resolver))
                  .Resolve();
         }
 
-        private static IShard RandomShard() => (IShard)Activator.CreateInstance(_cardList[GoRogue.Random.SingletonRandom.DefaultRNG.Next(_cardList.Count)]);
+        private static IShard RandomShard() => (IShard)Activator.CreateInstance(_cardList[SingletonRandom.DefaultRNG.Next(_cardList.Count)]);
 
         private static void RunSystems()
         {

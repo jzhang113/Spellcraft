@@ -8,9 +8,9 @@ namespace Spellcraft.Shards
         public string Name => "Blast";
         public char Symbol => 'B';
 
-        public SpellResolver Primary()
+        public SpellResolver Primary(IGameObject caster)
         {
-            var spellBase = new SpellResolver(targets =>
+            return new SpellResolver(targets =>
             {
                 targets.ForEach(pos =>
                 {
@@ -21,9 +21,8 @@ namespace Spellcraft.Shards
             })
             {
                 Radius = 1,
-                Target = Game.Player.Position
+                Target = caster.Position
             };
-            return spellBase;
         }
 
         public SpellResolver Secondary(SpellResolver parent)
