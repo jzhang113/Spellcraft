@@ -17,11 +17,13 @@ namespace Spellcraft
     {
         public const int WinWidth = 20;
         public const int WinHeight = 20;
+        public static readonly TimeSpan FrameRate = new TimeSpan(TimeSpan.TicksPerSecond / 30);
 
         public const int Width = 10;
         public const int Height = 10;
         internal static Map Map;
         internal static IGameObject Player;
+        internal static AnimationHandler Animations;
 
         private static IList<IShard> _cards;
         private static IList<IShard> _stack;
@@ -42,6 +44,8 @@ namespace Spellcraft
                 .Where(p => typeof(IShard).IsAssignableFrom(p) && p.IsClass)
                 .ToList();
 
+            Animations = new AnimationHandler();
+
             Map = new Map(Width, Height, 1, GoRogue.Distance.CHEBYSHEV);
             _cards = new List<IShard>();
             _stack = new List<IShard>();
@@ -60,13 +64,12 @@ namespace Spellcraft
 
         private static void Run()
         {
-            var frameRate = new TimeSpan(TimeSpan.TicksPerSecond / 30);
             const int updateLimit = 10;
             bool exiting = false;
             DateTime currentTime = DateTime.UtcNow;
             var accum = new TimeSpan();
 
-            TimeSpan maxDt = frameRate * updateLimit;
+            TimeSpan maxDt = FrameRate * updateLimit;
 
             while (!exiting)
             {
@@ -80,7 +83,7 @@ namespace Spellcraft
                 currentTime = newTime;
                 accum += frameTime;
 
-                while (accum >= frameRate)
+                while (accum >= FrameRate)
                 {
                     if (Terminal.HasInput())
                     {
@@ -88,10 +91,11 @@ namespace Spellcraft
                         RunSystems();
                     }
 
-                    accum -= frameRate;
+                    accum -= FrameRate;
                 }
 
-                double remaining = accum / frameRate;
+                double remaining = accum / FrameRate;
+                Animations.Run(frameTime, remaining);
                 Render();
             }
 
@@ -187,6 +191,8 @@ namespace Spellcraft
             {
                 Terminal.Put(idx, Height + 6, card.Symbol);
             }
+
+            Animations.Draw();
 
             Terminal.Refresh();
         }

@@ -1,4 +1,5 @@
 ﻿using GoRogue.GameFramework;
+using Spellcraft.Animations;
 using Spellcraft.Components;
 
 namespace Spellcraft.Shards
@@ -10,7 +11,7 @@ namespace Spellcraft.Shards
 
         public SpellResolver Primary(IGameObject caster)
         {
-            return new SpellResolver(targets =>
+            return new SpellResolver(caster.Position, targets =>
             {
                 targets.ForEach(pos =>
                 {
@@ -18,11 +19,9 @@ namespace Spellcraft.Shards
                             ?.GetComponent<HealthComponent>()
                             ?.Damage(1);
                 });
-            })
-            {
-                Radius = 1,
-                Target = caster.Position
-            };
+
+                Game.Animations.Add((int)caster.ID, new FlashAnimation(targets, System.Drawing.Color.Red));
+            });
         }
 
         public SpellResolver Secondary(SpellResolver parent)

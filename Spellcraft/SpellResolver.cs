@@ -7,24 +7,29 @@ namespace Spellcraft
     class SpellResolver
     {
         public Action<IEnumerable<Coord>> Effect { get; }
-
         public Coord Target { get; set; }
-        public bool NeedsTarget { get; set; }
         public int Radius { get; set; }
 
-        public SpellResolver(Action<IEnumerable<Coord>> effect)
+        public SpellResolver(Coord target, Action<IEnumerable<Coord>> effect)
         {
+            Target = target;
             Effect = effect;
         }
 
         public void Resolve()
         {
-            if (NeedsTarget)
+            ICollection<Coord> targets = new List<Coord>();
+
+            for (int i = Target.X - Radius; i <= Target.X + Radius; i++)
             {
-                // get player targetting
+                for (int j = Target.Y - Radius; j <= Target.Y + Radius; j++)
+                {
+                    if (i >= 0 && i < Game.Map.Width && j >= 0 && j < Game.Map.Height)
+                        targets.Add(new Coord(i, j));
+                }
             }
 
-            Effect(new List<Coord>() { Target });
+            Effect(targets);
         }
     }
 }

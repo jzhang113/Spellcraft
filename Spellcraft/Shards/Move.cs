@@ -42,16 +42,12 @@ namespace Spellcraft.Shards
 
         public SpellResolver Primary(IGameObject caster)
         {
-            return new SpellResolver(targets =>
+            return new SpellResolver(caster.Position + _dir, targets =>
             {
                 Coord t = targets.LastOrDefault();
                 if (t != default(Coord))
                     caster.Position = t;
-            })
-            {
-                Radius = 1,
-                Target = caster.Position + _dir
-            };
+            });
         }
 
         public SpellResolver Secondary(SpellResolver parent)
