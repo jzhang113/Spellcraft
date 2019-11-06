@@ -1,4 +1,5 @@
-﻿using GoRogue.GameFramework;
+﻿using GoRogue;
+using GoRogue.GameFramework;
 using Spellcraft.Animations;
 using Spellcraft.Components;
 
@@ -6,8 +7,11 @@ namespace Spellcraft.Shards
 {
     internal class Blast : IShard
     {
+        private static readonly Coord[] _modifiers = new Coord[1] { (1, 0) };
+
         public string Name => "Blast";
         public char Symbol => 'B';
+        public Coord[] Modifiers => _modifiers;
 
         public SpellResolver Primary(IGameObject caster)
         {

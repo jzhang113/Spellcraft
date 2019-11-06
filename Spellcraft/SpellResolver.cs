@@ -20,6 +20,8 @@ namespace Spellcraft
         {
             ICollection<Coord> targets = new List<Coord>();
 
+            Target = Clamp(Target);
+
             for (int i = Target.X - Radius; i <= Target.X + Radius; i++)
             {
                 for (int j = Target.Y - Radius; j <= Target.Y + Radius; j++)
@@ -30,6 +32,17 @@ namespace Spellcraft
             }
 
             Effect(targets);
+        }
+
+        private Coord Clamp(Coord coord)
+        {
+            int newX = Math.Min(Game.Map.Width - 1, coord.X);
+            newX = Math.Max(0, newX);
+
+            int newY = Math.Min(Game.Map.Height - 1, coord.Y);
+            newY = Math.Max(0, newY);
+
+            return (newX, newY);
         }
     }
 }

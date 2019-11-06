@@ -1,4 +1,5 @@
-﻿using GoRogue.GameFramework;
+﻿using GoRogue;
+using GoRogue.GameFramework;
 
 namespace Spellcraft.Shards
 {
@@ -6,6 +7,7 @@ namespace Spellcraft.Shards
     {
         string Name { get; }
         char Symbol { get; }
+        Coord[] Modifiers { get; }
 
         // Primary effect, when used as base
         SpellResolver Primary(IGameObject caster);

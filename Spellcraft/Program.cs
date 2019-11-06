@@ -26,7 +26,7 @@ namespace Spellcraft
         internal static AnimationHandler Animations;
 
         private static IList<IShard> _cards;
-        private static IList<IShard> _stack;
+        private static SpellStack _stack;
 
         private static List<Type> _cardList;
 
@@ -41,14 +41,12 @@ namespace Spellcraft
 
             _cardList = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
-                .Where(p => typeof(IShard).IsAssignableFrom(p) && p.IsClass)
+                .Where(p => typeof(IShard).IsAssignableFrom(p) && p.IsClass && p != typeof(Move) && p != typeof(Shards.Empty))
                 .ToList();
 
             Animations = new AnimationHandler();
 
             Map = new Map(Width, Height, 1, GoRogue.Distance.CHEBYSHEV);
-            _cards = new List<IShard>();
-            _stack = new List<IShard>();
 
             ISettableMapView<bool> mapview = new ArrayMap<bool>(Width, Height);
             QuickGenerators.GenerateRectangleMap(mapview);
@@ -57,6 +55,9 @@ namespace Spellcraft
 
             Player = EntityFactory.Player(new GoRogue.Coord(5, 5));
             Map.AddEntity(Player);
+
+            _cards = new List<IShard>();
+            _stack = new SpellStack(Player);
 
             Render();
             Run();
@@ -109,11 +110,26 @@ namespace Spellcraft
                 case Terminal.TK_CLOSE:
                 case Terminal.TK_ESCAPE:
                     return true;
+                case Terminal.TK_UP:
+                    _stack.Add(new Move(MoveDir.N));
+                    break;
+                case Terminal.TK_DOWN:
+                    _stack.Add(new Move(MoveDir.S));
+                    break;
+                case Terminal.TK_LEFT:
+                    _stack.Add(new Move(MoveDir.W));
+                    break;
+                case Terminal.TK_RIGHT:
+                    _stack.Add(new Move(MoveDir.E));
+                    break;
                 case Terminal.TK_ENTER:
-                    IShard card = RandomShard();
-                    _cards.Add(card);
-                    Resolve(_stack);
+                    if (_cards.Count < 9)
+                    {
+                        IShard card = RandomShard();
+                        _cards.Add(card);
+                    }
 
+                    _stack.Resolve();
                     _stack.Clear();
                     return false;
             }
@@ -124,23 +140,12 @@ namespace Spellcraft
                 if (_cards.Count > num)
                 {
                     IShard itm = _cards[num];
-                    _cards.RemoveAt(num);
-                    _stack.Add(itm);
+                    if (_stack.Add(itm))
+                        _cards.RemoveAt(num);
                 }
             }
 
             return false;
-        }
-
-        private static void Resolve(IList<IShard> stack)
-        {
-            if (stack.Count == 0)
-                return;
-
-            SpellResolver spell = stack[0].Primary(Player);
-            stack.Skip(1)
-                 .Aggregate(spell, (resolver, shard) => shard.Secondary(resolver))
-                 .Resolve();
         }
 
         private static IShard RandomShard() => (IShard)Activator.CreateInstance(_cardList[SingletonRandom.DefaultRNG.Next(_cardList.Count)]);
@@ -179,18 +184,26 @@ namespace Spellcraft
                     entity.GetComponent<DrawComponent>()
                           ?.Draw());
 
-            Terminal.Print(new Rectangle(0, Height + 1, 5, 1), "Hand:");
+            int handY = Height + 1;
+            Terminal.Print(new Rectangle(0, handY, 5, 1), "Hand:");
             foreach ((IShard card, int idx) in _cards.Select((v, i) => (v, i)))
             {
-                Terminal.Put(idx, Height + 2, idx + '1');
-                Terminal.Put(idx, Height + 3, card.Symbol);
+                Terminal.Put(idx * 2 + 1, handY + 1, idx + '1');
+                Terminal.Put(idx * 2 + 2, handY + 2, '┬');
+                Terminal.Put(idx * 2 + 2, handY + 4, '┴');
+                Terminal.Put(idx * 2 + 1, handY + 3, card.Symbol);
+            }
+            if (_cards.Count > 0)
+            {
+                Terminal.Put(0, handY + 2, '┌');
+                Terminal.Put(0, handY + 4, '└');
+                Terminal.Put(_cards.Count * 2, handY + 2, '┐');
+                Terminal.Put(_cards.Count * 2, handY + 4, '┘');
             }
 
-            Terminal.Print(new Rectangle(0, Height + 5, 6, 1), "Stack:");
-            foreach ((IShard card, int idx) in _stack.Select((v, i) => (v, i)))
-            {
-                Terminal.Put(idx, Height + 6, card.Symbol);
-            }
+            int stackX = 0;
+            int stackY = Height + 6;
+            _stack.Draw(stackX, stackY);
 
             Animations.Draw();
 

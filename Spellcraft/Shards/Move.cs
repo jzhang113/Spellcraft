@@ -6,33 +6,44 @@ using System.Linq;
 
 namespace Spellcraft.Shards
 {
+    enum MoveDir
+    {
+        N, E, S, W
+    }
+
     class Move : IShard
     {
+        private static readonly Coord[] _modifiers = new Coord[0];
+        private static readonly IDiceExpression _dirChoice = Dice.Parse("1d4-1");
+
         public string Name { get; }
         public char Symbol { get; }
-        private readonly Direction _dir;
-        private readonly IDiceExpression _dirChoice = Dice.Parse("1d4");
+        public Coord[] Modifiers => _modifiers;
 
-        public Move()
+        private readonly Direction _dir;
+
+        public Move() : this((MoveDir) _dirChoice.Roll()) { }
+
+        public Move(MoveDir dir)
         {
-            switch (_dirChoice.Roll())
+            switch (dir)
             {
-                case 1:
+                case MoveDir.N:
                     _dir = Direction.UP;
                     Name = "North";
                     Symbol = 'N';
                     break;
-                case 2:
+                case MoveDir.E:
                     _dir = Direction.RIGHT;
                     Name = "East";
                     Symbol = 'E';
                     break;
-                case 3:
+                case MoveDir.S:
                     _dir = Direction.DOWN;
                     Name = "South";
                     Symbol = 'S';
                     break;
-                case 4:
+                case MoveDir.W:
                     _dir = Direction.LEFT;
                     Name = "West";
                     Symbol = 'W';
