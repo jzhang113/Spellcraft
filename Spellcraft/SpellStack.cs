@@ -12,16 +12,17 @@ namespace Spellcraft
     {
         private readonly IDictionary<Coord, IShard> _stack;
         private readonly IGameObject _caster;
+        private readonly bool _autoEnd;
 
-        public SpellStack(IGameObject caster)
+        public SpellStack(IGameObject caster, bool autoEnd = true)
         {
             _caster = caster;
+            _autoEnd = autoEnd;
             _stack = new Dictionary<Coord, IShard>
             {
                 [(0, 0)] = new Empty()
             };
         }
-
 
         public void Resolve()
         {
@@ -43,10 +44,34 @@ namespace Spellcraft
 
         public bool Add(IShard shard)
         {
-            int minDist = int.MaxValue;
-            Coord closest = (-200, -200);
+            Coord? closest = FindClosestEmpty();
+            if (closest is Coord coord)
+            {
+                Add(coord, shard);
 
-            // find closest Empty
+                if (_autoEnd)
+                {
+                    Coord? nextClosest = FindClosestEmpty();
+                    if (!nextClosest.HasValue)
+                    {
+                        Resolve();
+                        Clear();
+                    }
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private Coord? FindClosestEmpty()
+        {
+            int minDist = int.MaxValue;
+            Coord? closest = null;
+
             foreach ((Coord pos, IShard card) in _stack)
             {
                 if (card is Empty)
@@ -60,15 +85,7 @@ namespace Spellcraft
                 }
             }
 
-            if (closest != (-200, -200))
-            {
-                Add(closest, shard);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return closest;
         }
 
         public void Add(Coord pos, IShard shard)
@@ -87,18 +104,16 @@ namespace Spellcraft
         public void Draw(int xPos, int yPos)
         {
             Terminal.Print(new Rectangle(xPos, yPos, 6, 1), "Stack:");
+            yPos += 5;
 
             foreach (((int cx, int cy), IShard card) in _stack)
             {
-                Terminal.Put(xPos + cx * 2 + 2, yPos + cy + 1, '┬');
-                Terminal.Put(xPos + cx * 2 + 2, yPos + cy + 3, '┴');
-                Terminal.Put(xPos + cx * 2 + 1, yPos + cy + 2, card.Symbol);
+                Terminal.Put(xPos + cx * 2, yPos + cy * 2 + 1, '┼');
+                Terminal.Put(xPos + cx * 2, yPos + cy * 2 + 3, '┼');
+                Terminal.Put(xPos + cx * 2 + 2, yPos + cy * 2 + 1, '┼');
+                Terminal.Put(xPos + cx * 2 + 2, yPos + cy * 2 + 3, '┼');
+                Terminal.Put(xPos + cx * 2 + 1, yPos + cy * 2 + 2, card.Symbol);
             }
-
-            Terminal.Put(xPos, yPos + 1, '┌');
-            Terminal.Put(xPos, yPos + 3, '└');
-            Terminal.Put(xPos + _stack.Count * 2, yPos + 1, '┐');
-            Terminal.Put(xPos + _stack.Count * 2, yPos + 3, '┘');
         }
     }
 }

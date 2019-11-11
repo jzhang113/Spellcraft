@@ -14,7 +14,7 @@ namespace Spellcraft.Shards
 
         public Coord[] Modifiers => _modifiers;
 
-        public SpellResolver Primary(IGameObject caster) => new SpellResolver(caster.Position, _ => { });
+        public SpellResolver Primary(IGameObject caster) => new SpellResolver(caster.Position, AreaType.Area, _ => { });
         public SpellResolver Secondary(SpellResolver parent) => parent;
     }
 }

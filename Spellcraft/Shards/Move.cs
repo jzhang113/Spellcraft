@@ -6,11 +6,6 @@ using System.Linq;
 
 namespace Spellcraft.Shards
 {
-    enum MoveDir
-    {
-        N, E, S, W
-    }
-
     class Move : IShard
     {
         private static readonly Coord[] _modifiers = new Coord[0];
@@ -53,18 +48,24 @@ namespace Spellcraft.Shards
 
         public SpellResolver Primary(IGameObject caster)
         {
-            return new SpellResolver(caster.Position + _dir, targets =>
+            var resolver = new SpellResolver(caster.Position, AreaType.Move, targets =>
             {
-                Coord t = targets.LastOrDefault();
-                if (t != default(Coord))
-                    caster.Position = t;
+                targets.ForEach(dir => caster.Position += dir);
             });
+            resolver.MoveRecord.Add(_dir);
+
+            return resolver;
         }
 
         public SpellResolver Secondary(SpellResolver parent)
         {
-            parent.Target += _dir;
+            parent.MoveRecord.Add(_dir);
             return parent;
         }
+    }
+
+    enum MoveDir
+    {
+        N, E, S, W
     }
 }

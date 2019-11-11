@@ -17,7 +17,7 @@ namespace Spellcraft.Shards
 
         public SpellResolver Primary(IGameObject caster)
         {
-            return new SpellResolver(caster.Position, targets =>
+            return new SpellResolver(caster.Position, AreaType.Area, targets =>
             {
                 targets.ForEach(pos =>
                 {

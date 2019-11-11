@@ -1,34 +1,55 @@
 ﻿using GoRogue;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Spellcraft
 {
-    class SpellResolver
+    internal class SpellResolver
     {
         public Action<IEnumerable<Coord>> Effect { get; }
         public Coord Target { get; set; }
         public int Radius { get; set; }
+        public ICollection<Direction> MoveRecord { get; }
 
-        public SpellResolver(Coord target, Action<IEnumerable<Coord>> effect)
+        private readonly AreaType _shape;
+
+        public SpellResolver(Coord target, AreaType shape, Action<IEnumerable<Coord>> effect)
         {
+            _shape = shape;
+
             Target = target;
             Effect = effect;
+            MoveRecord = new List<Direction>();
         }
 
         public void Resolve()
         {
+
             ICollection<Coord> targets = new List<Coord>();
 
-            Target = Clamp(Target);
-
-            for (int i = Target.X - Radius; i <= Target.X + Radius; i++)
+            switch (_shape)
             {
-                for (int j = Target.Y - Radius; j <= Target.Y + Radius; j++)
-                {
-                    if (i >= 0 && i < Game.Map.Width && j >= 0 && j < Game.Map.Height)
-                        targets.Add(new Coord(i, j));
-                }
+                case AreaType.Move:
+                    targets = MoveRecord.Select(dir => new Coord(dir.DeltaX, dir.DeltaY)).ToList();
+                    break;
+                case AreaType.Area:
+                    foreach (Direction dir in MoveRecord)
+                    {
+                        Target += dir;
+                    }
+
+                    Target = Clamp(Target);
+
+                    for (int i = Target.X - Radius; i <= Target.X + Radius; i++)
+                    {
+                        for (int j = Target.Y - Radius; j <= Target.Y + Radius; j++)
+                        {
+                            if (i >= 0 && i < Game.Map.Width && j >= 0 && j < Game.Map.Height)
+                                targets.Add(new Coord(i, j));
+                        }
+                    }
+                    break;
             }
 
             Effect(targets);
@@ -44,5 +65,11 @@ namespace Spellcraft
 
             return (newX, newY);
         }
+    }
+
+    internal enum AreaType
+    {
+        Area,
+        Move
     }
 }
