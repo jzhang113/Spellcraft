@@ -2,6 +2,8 @@
 using GoRogue.GameFramework;
 using Spellcraft.Animations;
 using Spellcraft.Components;
+using System;
+using System.Drawing;
 
 namespace Spellcraft.Shards
 {
@@ -24,7 +26,9 @@ namespace Spellcraft.Shards
                             ?.Damage(1);
                 });
 
-                Game.Animations.Add((int)caster.ID, new FlashAnimation(targets, System.Drawing.Color.Red));
+                Game.Animations.Add(
+                    (int)caster.ID,
+                    new FlashAnimation(targets, Color.Red, TimeSpan.FromMilliseconds(400)));
             });
         }
 

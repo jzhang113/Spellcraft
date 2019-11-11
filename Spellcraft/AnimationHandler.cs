@@ -1,7 +1,6 @@
 ﻿using Spellcraft.Animations;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Spellcraft
 {
@@ -39,10 +38,19 @@ namespace Spellcraft
         {
             foreach ((int _, List<IAnimation> queue) in _current)
             {
-                IAnimation animation = queue.FirstOrDefault();
-                if (animation?.Update(frameTime) ?? false)
+                var removeList = new List<IAnimation>();
+                foreach (IAnimation animation in queue)
                 {
-                    queue.Remove(animation);
+                    if (animation.Update(frameTime))
+                        removeList.Add(animation);
+
+                    if (!animation.UpdateNext)
+                        break;
+                }
+
+                foreach (IAnimation done in removeList)
+                {
+                    queue.Remove(done);
                 }
             }
         }
@@ -51,8 +59,13 @@ namespace Spellcraft
         {
             foreach ((int _, List<IAnimation> queue) in _current)
             {
-                IAnimation animation = queue.FirstOrDefault();
-                animation?.Draw();
+                foreach (IAnimation animation in queue)
+                {
+                    animation.Draw();
+
+                    if (!animation.UpdateNext)
+                        break;
+                }
             }
         }
     }

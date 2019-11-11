@@ -15,9 +15,9 @@ namespace Spellcraft
 {
     internal class Game
     {
-        public const int WinWidth = 20;
-        public const int WinHeight = 20;
-        public static readonly TimeSpan FrameRate = new TimeSpan(TimeSpan.TicksPerSecond / 30);
+        public const int WinWidth = 30;
+        public const int WinHeight = 30;
+        public static readonly TimeSpan FrameRate = new TimeSpan(TimeSpan.TicksPerSecond / 60);
 
         public const int Width = 10;
         public const int Height = 10;
@@ -46,7 +46,7 @@ namespace Spellcraft
 
             Animations = new AnimationHandler();
 
-            Map = new Map(Width, Height, 1, GoRogue.Distance.CHEBYSHEV);
+            Map = new Map(Width, Height, 1, GoRogue.Distance.MANHATTAN);
 
             ISettableMapView<bool> mapview = new ArrayMap<bool>(Width, Height);
             QuickGenerators.GenerateRectangleMap(mapview);
@@ -123,6 +123,7 @@ namespace Spellcraft
                     _stack.Add(new Move(MoveDir.E));
                     break;
                 case Terminal.TK_ENTER:
+                case Terminal.TK_SPACE:
                     if (_cards.Count < 9)
                     {
                         IShard card = RandomShard();

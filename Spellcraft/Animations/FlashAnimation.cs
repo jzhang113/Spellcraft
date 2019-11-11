@@ -8,20 +8,28 @@ namespace Spellcraft.Animations
 {
     internal class FlashAnimation : IAnimation
     {
-        public TimeSpan Duration { get; } = Game.FrameRate * 4;
+        public TimeSpan Duration { get; }
         public TimeSpan CurrentTime { get; private set; }
         public TimeSpan EndTime { get; }
+
+        public bool Blocking { get; }
+        public TimeSpan Delay { get; }
+        public bool UpdateNext => !Blocking && CurrentTime >= Delay;
 
         private readonly IEnumerable<Coord> _pos;
         private readonly Color _color;
 
-        public FlashAnimation(IEnumerable<Coord> pos, in Color color)
+        public FlashAnimation(IEnumerable<Coord> pos, in Color color, TimeSpan duration, bool blocking = false, TimeSpan delay = default)
         {
             _pos = pos;
             _color = color;
 
+            Duration = duration;
             CurrentTime = TimeSpan.Zero;
             EndTime = CurrentTime + Duration;
+
+            Blocking = blocking;
+            Delay = delay;
         }
 
         public bool Update(TimeSpan dt)
@@ -33,7 +41,7 @@ namespace Spellcraft.Animations
         public void Draw()
         {
             double fracPassed = CurrentTime / Duration;
-            Color between = _color.Blend(Color.White, fracPassed);
+            Color between = _color.Blend(Color.Black, fracPassed);
             Terminal.Color(between);
             Terminal.Layer(2);
             foreach (Coord pos in _pos) {
